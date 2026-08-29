@@ -1,0 +1,3 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.local.targets" Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.local.targets')" />
+</Project>
