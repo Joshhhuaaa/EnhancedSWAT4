@@ -176,17 +176,16 @@ namespace
 
         shUpdateInput.thiscall<void>(self, reset, deltaSeconds);
 
-        // Legacy mouse messages cost far more than the raw input they shadow at a high polling
-        // rate, but ViewportWndProc's mouse-move case is what calls SetCursor and writes
-        // WindowsMouseX/Y, both gated on bShowWindowsMouse - so they can only go while the game is
-        // not showing the Windows cursor, which is exactly when nothing reads them.
-        auto bNoLegacy = bForeground && !(*reinterpret_cast<uint8_t*>(self + PlayerFlags) & bShowWindowsMouse);
-
-        if (hGameWindow && bNoLegacy != bLegacyOff)
+        // Legacy mouse messages cost ~60 us each and duplicate raw input, so they are disabled while
+        // the game is foreground. While a menu is up, its mouse handling is supplied once per frame.
+        if (hGameWindow && bForeground != bLegacyOff)
         {
-            bLegacyOff = bNoLegacy;
-            RegisterRawInput(hGameWindow, bNoLegacy);
+            bLegacyOff = bForeground;
+            RegisterRawInput(hGameWindow, bForeground);
         }
+
+        if (bLegacyOff && (*reinterpret_cast<uint8_t*>(self + PlayerFlags) & bShowWindowsMouse))
+            CallWindowProcW(gameWndProc, hGameWindow, WM_MOUSEMOVE, 0, 0);
 
         if (reset)
         {

@@ -4,7 +4,7 @@
 #include "script.hpp"
 
 static constexpr float fHUDScale     = 1.0f;    // 0 is the stock native size, 1 matches the 800x600 proportions
-static constexpr bool bWidescreenHUD = true;    // Prevents the HUD from stretching on widescreen
+static constexpr bool bHUDWidescreen = true;    // Prevents the HUD from stretching on widescreen
 
 namespace
 {
