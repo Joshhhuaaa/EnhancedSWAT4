@@ -13,6 +13,7 @@ namespace
 
     // UCanvas, read off the copy constructor
     constexpr ptrdiff_t CanvasFont     = 0x2c;
+    constexpr ptrdiff_t CanvasOrgY     = 0x3c;
     constexpr ptrdiff_t CanvasCurX     = 0x48;
     constexpr ptrdiff_t CanvasCurY     = 0x4c;
     constexpr ptrdiff_t CanvasClipY    = 0x44;
@@ -140,10 +141,27 @@ namespace
         *yl = static_cast<int>(*yl * s);
     }
 
+    // DrawString clips vertically in texels, so CurY and ClipY are converted before scaling and
+    // restored afterwards. X cannot be handled the same way because advances accumulate in pixels.
     void __fastcall ClippedPrint(void* self, void*, void* font, float scaleX, float scaleY, int hotKey, const wchar_t* text)
     {
-        auto s = Scale(self, font);
-        shClippedPrint.thiscall<void>(self, font, scaleX * s, scaleY * s, hotKey, text);
+        auto s  = Scale(self, font);
+        auto ys = scaleY * s;
+
+        auto curY  = At<float>(self, CanvasCurY);
+        auto clipY = At<float>(self, CanvasClipY);
+        auto orgY  = At<float>(self, CanvasOrgY);
+
+        At<float>(self, CanvasCurY)  = curY / ys;
+        At<float>(self, CanvasClipY) = clipY / ys;
+        if (curY > 0.0f)
+            At<float>(self, CanvasOrgY) = orgY + curY - curY / ys;
+
+        shClippedPrint.thiscall<void>(self, font, scaleX * s, ys, hotKey, text);
+
+        At<float>(self, CanvasCurY)  = curY;
+        At<float>(self, CanvasClipY) = clipY;
+        At<float>(self, CanvasOrgY)  = orgY;
     }
 
     // The running line height is fed back through ScaleY once per character (base Engine
