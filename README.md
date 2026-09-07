@@ -121,7 +121,7 @@ Removes the stock 256x256 resolution limit for the Optiwand, allowing its textur
 Sets a maximum framerate. A value of `0` disables the limiter, `-1` matches the monitor's refresh rate, and any other value enables a hard cap at that value.
 
 ### Multiplayer
-- Updates the master server to use [swat4stats.com](https://swat4stats.com), restoring the in-game server browser without requiring a patched Engine.dll.
+- Updates the master server to use [swat4stats.com](https://swat4stats.com), restoring the in-game server browser without requiring a patched `Engine.dll`.
 - Net speed is forced to 480 kbps (32x the stock LAN/T1 limit), providing plenty of bandwidth headroom for higher FPS. The in-game Connection Speed setting is ignored, preventing a misconfigured setting from bottlenecking the connection.
 
 ### Bug Fixes
