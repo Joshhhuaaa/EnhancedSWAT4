@@ -80,6 +80,7 @@
     <ClCompile Include="src\features\resolution_list.cpp" />
     <ClCompile Include="src\features\skip_intro.cpp" />
     <ClCompile Include="src\features\smaa.cpp" />
+    <ClCompile Include="src\features\video_memory.cpp" />
     <ClCompile Include="src\features\window_drift.cpp" />
   </ItemGroup>
   <ItemGroup Label="External">

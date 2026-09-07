@@ -118,6 +118,12 @@
       <Filter>external</Filter>
     </ClCompile>
     <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\features\massive_ads.cpp">
+      <Filter>features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\video_memory.cpp">
+      <Filter>features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\callbacks.h">
