@@ -71,6 +71,7 @@
     <ClCompile Include="src\features\hud.cpp" />
     <ClCompile Include="src\features\list_scroll.cpp" />
     <ClCompile Include="src\features\master_server.cpp" />
+    <ClCompile Include="src\features\massive_ads.cpp" />
     <ClCompile Include="src\features\movie.cpp" />
     <ClCompile Include="src\features\msaa.cpp" />
     <ClCompile Include="src\features\net_speed.cpp" />
