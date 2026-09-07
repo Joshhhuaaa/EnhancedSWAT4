@@ -50,6 +50,9 @@ Mouse input accurately reads data at high polling rates, eliminating the need to
 ### Mouse Sensitivity Multiplier
 Separate sensitivity multipliers for in-game aiming and the menu cursor allow for more control than the in-game slider.
 
+> [!TIP]
+> For the best experience, set your in-game sensitivity to the lowest setting. Raising the sensitivity multiplier or your mouse CPI instead can help minimize pixel skipping caused by the engine.
+
 ### Borderless Support
 Adds an option to run the game in borderless windowed mode. Borderless always renders at the native resolution, regardless of the in-game resolution setting.
 
