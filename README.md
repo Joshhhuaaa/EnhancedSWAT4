@@ -127,7 +127,13 @@ Sets a maximum framerate. A value of `0` disables the limiter, `-1` matches the 
 - Updates the master server to use [swat4stats.com](https://swat4stats.com), restoring the in-game server browser without requiring a patched `Engine.dll`.
 - Net speed is forced to 480 kbps (32x the stock LAN/T1 limit), providing plenty of bandwidth headroom for higher FPS. The in-game Connection Speed setting is ignored, preventing a misconfigured setting from bottlenecking the connection.
 
-### Bug Fixes
+### SwatEd
 - Fixed the long delay when making selections in SwatEd on modern hardware.
-- Prevent SwatEd from changing the desktop gamma when launching.
+- Prevented SwatEd from changing the desktop gamma when launching.
+- Fixed an issue on modern versions of Windows that could cause the editor's main window to drift off-screen.
+- Increased the Realtime Preview framerate from 60 FPS to 240 FPS.
+
+### Bug Fixes
 - Fixed crashes that could occur when alt-tabbing out of the game while in fullscreen, particularly when an overlay such as RivaTuner was hooked.
+- Fixed a bug that could cause some systems to display an insufficient video memory warning.
+- Disabled Massive advertisements to prevent potential server-related crashes in the future.
