@@ -34,8 +34,8 @@ Field of view is calculated automatically based on the aspect ratio, widening th
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src=""></td>
-      <td width="50%"><img style="width:100%" src=""></td>
+      <td width="50%"><img style="width:100%" src="https://github.com/user-attachments/assets/185dc819-9df4-48ed-8bf4-0913aa618c7c"></td>
+      <td width="50%"><img style="width:100%" src="https://github.com/user-attachments/assets/f0993c22-5b8e-41a8-a17c-a53e47247c85"></td>
     </tr>
     <tr>
       <td align="center">Stock</td>
@@ -59,8 +59,8 @@ Forces anisotropic texture filtering.
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src=""></td>
-      <td width="50%"><img style="width:100%" src=""></td>
+      <td width="50%"><img width="512" src="https://github.com/user-attachments/assets/eec9cfb2-a849-4b10-b3d8-540ee5d5da4c"></td>
+      <td width="50%"><img width="512" src="https://github.com/user-attachments/assets/67e1f912-1779-42e6-a3d8-aef459b6be40"></td>
     </tr>
     <tr>
       <td align="center">Stock</td>
@@ -75,8 +75,8 @@ Enables MSAA to smooth jagged edges while preserving a sharp image. MSAA does no
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src=""></td>
-      <td width="50%"><img style="width:100%" src=""></td>
+      <td width="50%"><img width="512" src="https://github.com/user-attachments/assets/401d498a-e861-40bf-82fe-5745452a514d"></td>
+      <td width="50%"><img width="512" src="https://github.com/user-attachments/assets/eeb5dfe4-4ec3-4d43-9f6c-74dacfbb0bf4"></td>
     </tr>
     <tr>
       <td align="center">Stock</td>
@@ -91,8 +91,8 @@ Enables SMAA to smooth jagged edges with a softer image. SMAA also smooths alpha
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src=""></td>
-      <td width="50%"><img style="width:100%" src=""></td>
+      <td width="50%"><img width="512" src="https://github.com/user-attachments/assets/cd6ff581-e8bd-4705-993a-2e6440a245b0"></td>
+      <td width="50%"><img width="512" src="https://github.com/user-attachments/assets/f56d5a94-a08d-481f-87c0-5732153a46f8"></td>
     </tr>
     <tr>
       <td align="center">Stock</td>
@@ -101,15 +101,14 @@ Enables SMAA to smooth jagged edges with a softer image. SMAA also smooths alpha
   </table>
 </div>
 
-
 ### Optiwand Resolution
 Removes the stock 256x256 resolution limit for the Optiwand, allowing its texture resolution to be increased up to 4096x4096.
 
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img style="width:100%" src=""></td>
-      <td width="50%"><img style="width:100%" src=""></td>
+      <td width="50%"><img style="width:100%" src="https://github.com/user-attachments/assets/b173e12d-74e9-421f-8c79-bb88217cccc2"></td>
+      <td width="50%"><img style="width:100%" src="https://github.com/user-attachments/assets/b13e59aa-74cc-4f36-9aa0-c84b2ac71017"></td>
     </tr>
     <tr>
       <td align="center">Stock</td>
