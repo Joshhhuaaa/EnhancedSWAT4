@@ -63,6 +63,10 @@ namespace
 
     // Each UFont the GUI hands out, as the line height of its GUIFont's 800x600 entry over its own
     std::map<void*, float> fontScale;
+    std::map<void*, int>   fontHeight;
+
+    // Canvas height seen by PreDraw, for GetFont, which is only given the width
+    int screenHeight = 0;
 
     std::map<void*, Reticle> reticles;
 
@@ -82,13 +86,33 @@ namespace
 
     int LineHeight(void* font)
     {
+        auto it = fontHeight.find(font);
+        if (it != fontHeight.end())
+            return it->second;
+
         auto& chars = At<FArray>(font, FontCharacters);
         int height = 0;
 
         for (int i = 0; i < chars.Num; ++i)
             height = std::max(height, At<int>(chars.Data, i * CharacterSize + CharacterVSize));
 
+        fontHeight[font] = height;
         return height;
+    }
+
+    // Pixel fonts blur at fractional scales, so they are only scaled by whole multiples
+    bool IsPixelFont(void* font)
+    {
+        static std::map<void*, bool> fonts;
+
+        if (!font || !GetName)
+            return false;
+
+        auto it = fonts.find(font);
+        if (it == fonts.end())
+            it = fonts.emplace(font, wcsncmp(GetName(font), L"pix", 3) == 0).first;
+
+        return it->second;
     }
 
     // Engine.Console loads one fixed bitmap font of its own and never goes through GUIFont, so it
@@ -143,6 +167,7 @@ namespace
 
     // DrawString clips vertically in texels, so CurY and ClipY are converted before scaling and
     // restored afterwards. X cannot be handled the same way because advances accumulate in pixels.
+    // The box was truncated from the scaled cell, so it rounds back up to keep the cell's last row.
     void __fastcall ClippedPrint(void* self, void*, void* font, float scaleX, float scaleY, int hotKey, const wchar_t* text)
     {
         auto s  = Scale(self, font);
@@ -152,10 +177,10 @@ namespace
         auto clipY = At<float>(self, CanvasClipY);
         auto orgY  = At<float>(self, CanvasOrgY);
 
-        At<float>(self, CanvasCurY)  = curY / ys;
-        At<float>(self, CanvasClipY) = clipY / ys;
+        At<float>(self, CanvasCurY)  = std::round(curY / ys);
+        At<float>(self, CanvasClipY) = std::ceil(clipY / ys);
         if (curY > 0.0f)
-            At<float>(self, CanvasOrgY) = orgY + curY - curY / ys;
+            At<float>(self, CanvasOrgY) = orgY + curY - std::round(curY / ys);
 
         shClippedPrint.thiscall<void>(self, font, scaleX * s, ys, hotKey, text);
 
@@ -298,35 +323,73 @@ namespace
         shDrawTile = safetyhook::create_inline(drawTile, DrawTile);
     }
 
+    void* LadderFont(void* self, void* like, int i)
+    {
+        auto& names = At<FArray>(self, FontNames);
+        auto& fonts = At<FArray>(self, FontFonts);
+
+        auto font = i < fonts.Num ? static_cast<void**>(fonts.Data)[i] : nullptr;
+        if (!font)
+            font = StaticLoadObject(At<void*>(like, ObjectClass), nullptr, static_cast<FString*>(names.Data)[i].Data, nullptr, 2, nullptr);
+
+        return font;
+    }
+
+    // Stock picks a font page by width, which can downscale text and clip line endings. Pick the
+    // tallest page that fits the screen height so the draw only scales up.
     void __fastcall GetFont(void* self, void*, void* stack, void** result)
     {
         shGetFont.thiscall<void>(self, stack, result);
 
         auto font = *result;
-        if (!font || fontScale.contains(font) || (At<uint8_t>(self, FontFixedSize) & 1))
+        if (!font || (At<uint8_t>(self, FontFixedSize) & 1))
             return;
 
-        auto& names = At<FArray>(self, FontNames);
-        auto& fonts = At<FArray>(self, FontFonts);
-
         // What stock picks at 800x600
-        int base = std::min(1, names.Num - 1);
+        int base = std::min(1, At<FArray>(self, FontNames).Num - 1);
         if (base < 0)
             return;
 
-        auto baseFont = base < fonts.Num ? static_cast<void**>(fonts.Data)[base] : nullptr;
-        if (!baseFont)
-            baseFont = StaticLoadObject(At<void*>(font, ObjectClass), nullptr, static_cast<FString*>(names.Data)[base].Data, nullptr, 2, nullptr);
+        auto baseFont   = LadderFont(self, font, base);
+        auto baseHeight = baseFont ? LineHeight(baseFont) : 0;
+        if (baseHeight <= 0)
+        {
+            fontScale.try_emplace(font, 1.0f);
+            return;
+        }
 
-        auto baseHeight   = baseFont ? LineHeight(baseFont) : 0;
-        auto chosenHeight = LineHeight(font);
+        if (screenHeight > 0)
+        {
+            auto target = baseHeight * screenHeight / BaseHeight;
+            font        = baseFont;
 
-        fontScale[font] = baseHeight > 0 && chosenHeight > 0 ? static_cast<float>(baseHeight) / chosenHeight : 1.0f;
+            for (int i = At<FArray>(self, FontNames).Num - 1; i > base; --i)
+                if (auto page = LadderFont(self, baseFont, i); page && LineHeight(page) <= target)
+                {
+                    font = page;
+                    break;
+                }
+
+            *result = font;
+        }
+
+        auto scale = LineHeight(font) > 0 ? static_cast<float>(baseHeight) / LineHeight(font) : 1.0f;
+
+        if (screenHeight > 0 && IsPixelFont(font))
+        {
+            auto s = scale * screenHeight / BaseHeight * fHUDScale;
+            scale *= std::max(1.0f, std::floor(s)) / s;
+        }
+
+        fontScale[font] = scale;
     }
 
     void __fastcall PreDraw(void* self, void*, void* canvas)
     {
         shPreDraw.thiscall<void>(self, canvas);
+
+        if (At<void*>(canvas, CanvasViewport))
+            screenHeight = At<int>(canvas, CanvasSizeY);
 
         auto cls = At<void*>(self, ObjectClass);
         auto it  = reticles.find(cls);
@@ -410,6 +473,14 @@ namespace
     constexpr ptrdiff_t ComponentWinLeft    = 0xd8;
     constexpr ptrdiff_t ComponentWinWidth   = 0xdc;
     constexpr ptrdiff_t ComponentFlags      = 0xe4;   // 1 bScaled, 2 bBoundToParent, 4 bScaleToParent
+    constexpr ptrdiff_t ComponentMenuState  = 0xb0;
+    constexpr ptrdiff_t ComponentStyle      = 0x118;
+    constexpr ptrdiff_t ComponentClientTop  = 0x130;  // ClientBounds[1], [3] at +0x138
+    constexpr ptrdiff_t StyleBorders        = 0xa8;   // TArray<sBorderOffset>, 16 bytes: Left, Right, Top, Bottom
+
+    // BorderOffsets are "pixels at 1600x1200"
+    constexpr float BorderWidth  = 1600.0f;
+    constexpr float BorderHeight = 1200.0f;
 
     // GUIController ResolutionX/Y: +0x64/+0x68 in the base, +0x70/+0x74 in the expansion
     ptrdiff_t controllerWidth  = 0;
@@ -422,6 +493,7 @@ namespace
 
     SafetyHookInline shActualLeft{};
     SafetyHookInline shActualWidth{};
+    SafetyHookInline shUpdateBounds{};
 
     // Classes with a Reticle var are HUD pages
     std::map<void*, bool> hudPages;
@@ -544,6 +616,32 @@ namespace
 
         return left + anchor * screen * (1.0f - box);
     }
+
+    // UpdateBounds scales every border offset by SizeX / 1600, making the vertical bounds wrong off 4:3.
+    // Rescale the top and bottom offsets by height instead.
+    void __fastcall UpdateBounds(void* self, void*)
+    {
+        shUpdateBounds.thiscall<void>(self);
+
+        auto style = At<void*>(self, ComponentStyle);
+        auto width = style ? ScreenWidth(self) : 0;
+        if (!width)
+            return;
+
+        auto& borders = At<FArray>(style, StyleBorders);
+        auto  state   = At<uint8_t>(self, ComponentMenuState);
+        if (state >= borders.Num)
+            return;
+
+        auto height = At<int>(At<void*>(self, ComponentController), controllerHeight);
+        auto border = static_cast<float*>(borders.Data) + state * 4;
+
+        for (int i = 0; i < 2; ++i)
+        {
+            auto offset = border[2 + i];
+            At<float>(self, ComponentClientTop + i * 8) += static_cast<int>(offset * height / BorderHeight) - static_cast<int>(offset * width / BorderWidth);
+        }
+    }
 }
 
 FEATURE(GUI, HUDWidescreen)
@@ -553,17 +651,19 @@ FEATURE(GUI, HUDWidescreen)
 
     auto gui = GetModuleHandleW(L"GUI");
 
-    auto actualLeft  = GetProcAddress(gui, "?ActualLeft@UGUIComponent@@UAEMXZ");
-    auto actualWidth = GetProcAddress(gui, "?ActualWidth@UGUIComponent@@UAEMXZ");
+    auto actualLeft   = GetProcAddress(gui, "?ActualLeft@UGUIComponent@@UAEMXZ");
+    auto actualWidth  = GetProcAddress(gui, "?ActualWidth@UGUIComponent@@UAEMXZ");
+    auto updateBounds = GetProcAddress(gui, "?UpdateBounds@UGUIComponent@@UAEXXZ");
 
-    if (!actualLeft || !actualWidth)
+    if (!actualLeft || !actualWidth || !updateBounds)
     {
-        spdlog::error("HUDWidescreen: ActualLeft {}, ActualWidth {}", static_cast<void*>(actualLeft), static_cast<void*>(actualWidth));
+        spdlog::error("HUDWidescreen: ActualLeft {}, ActualWidth {}, UpdateBounds {}", static_cast<void*>(actualLeft), static_cast<void*>(actualWidth), static_cast<void*>(updateBounds));
         return;
     }
 
-    shActualLeft  = safetyhook::create_inline(actualLeft, ActualLeft);
-    shActualWidth = safetyhook::create_inline(actualWidth, ActualWidth);
+    shActualLeft   = safetyhook::create_inline(actualLeft, ActualLeft);
+    shActualWidth  = safetyhook::create_inline(actualWidth, ActualWidth);
+    shUpdateBounds = safetyhook::create_inline(updateBounds, UpdateBounds);
     HookDrawTile();
     spdlog::info("HUDWidescreen: HUD laid out in a 4:3 box and anchored to the screen edges");
 }
