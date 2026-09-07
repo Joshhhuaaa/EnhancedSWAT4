@@ -20,7 +20,7 @@ The latest version of Enhanced SWAT 4 can be found on the [Releases](https://git
 > Enhanced SWAT 4 is fully compatible with [SWAT: Elite Force](https://github.com/eezstreet/SWATEliteForce), and is recommended for playing SWAT 4 as it fixes many of the original game's bugs while also improving gameplay.
 
 ## Uninstallation
-- Navigate to the `Content\System` folder for SWAT 4 or the `ContentExpansion\System` folder for SWAT 4: The Stetchkov Syndicate, then delete the `plugins` folder and `dinput8.dll`.
+- Navigate to the `Content\System` folder for SWAT 4 or the `ContentExpansion\System` folder for SWAT 4: The Stetchkov Syndicate, then delete the `plugins` folder and `winmm.dll`.
 
 ## Features
 ### Skip Intro
