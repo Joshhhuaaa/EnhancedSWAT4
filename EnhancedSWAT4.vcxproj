@@ -74,6 +74,7 @@
     <ClCompile Include="src\features\massive_ads.cpp" />
     <ClCompile Include="src\features\movie.cpp" />
     <ClCompile Include="src\features\msaa.cpp" />
+    <ClCompile Include="src\features\multiple_instances.cpp" />
     <ClCompile Include="src\features\net_speed.cpp" />
     <ClCompile Include="src\features\optiwand.cpp" />
     <ClCompile Include="src\features\raw_input.cpp" />
