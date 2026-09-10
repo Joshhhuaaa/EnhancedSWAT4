@@ -79,6 +79,7 @@
     <ClCompile Include="src\features\optiwand.cpp" />
     <ClCompile Include="src\features\raw_input.cpp" />
     <ClCompile Include="src\features\resolution_list.cpp" />
+    <ClCompile Include="src\features\shadow_resolution.cpp" />
     <ClCompile Include="src\features\skip_intro.cpp" />
     <ClCompile Include="src\features\smaa.cpp" />
     <ClCompile Include="src\features\video_memory.cpp" />
