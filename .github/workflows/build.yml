@@ -1,0 +1,68 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ASI_LOADER_URL: https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/v9.7.4/Ultimate-ASI-Loader.zip
+  ASI_LOADER_SHA256: 952cebfc30d525afc2bdbaca954329d405ded3aa688a83027354dae14dfd5c5f
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - uses: microsoft/setup-msbuild@v3
+
+      - name: Build
+        run: msbuild EnhancedSWAT4.vcxproj /m /p:Configuration=Release /p:Platform=Win32 /p:SolutionDir=${{ github.workspace }}\
+
+      - name: Download ASI loader
+        shell: pwsh
+        run: |
+          Invoke-WebRequest $env:ASI_LOADER_URL -OutFile asi-loader.zip
+          $hash = (Get-FileHash asi-loader.zip -Algorithm SHA256).Hash
+          if ($hash -ne $env:ASI_LOADER_SHA256) { throw "ASI loader checksum mismatch: $hash" }
+          Expand-Archive asi-loader.zip -DestinationPath asi-loader
+
+      - name: Package
+        shell: pwsh
+        run: |
+          foreach ($game in 'Content', 'ContentExpansion') {
+            $system = "package\$game\System"
+            New-Item -ItemType Directory -Force $system\plugins | Out-Null
+            Copy-Item asi-loader\dinput8.dll $system\winmm.dll
+            Copy-Item bin\Release\plugins\EnhancedSWAT4.asi $system\plugins
+            Copy-Item data\$game\System\plugins\EnhancedSWAT4.ini $system\plugins
+          }
+
+      - name: Name artifacts
+        shell: pwsh
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $branch = $env:BRANCH -replace '[\\/:*?"<>|]', '-'
+          $commit = $env:COMMIT.Substring(0, 7)
+          "ARTIFACT_NAME=EnhancedSWAT4-${branch}-${commit}" >> $env:GITHUB_ENV
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: package
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-symbols
+          path: bin/Release/plugins/EnhancedSWAT4.pdb
+          if-no-files-found: warn
