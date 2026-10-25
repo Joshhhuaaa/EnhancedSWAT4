@@ -104,6 +104,22 @@ Enables SMAA to smooth jagged edges with a softer image. SMAA also smooths alpha
   </table>
 </div>
 
+### Shadow Resolution
+Allows shadow resolution to be increased from the stock 256x256 up to 2048x2048 for sharper shadows.
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%"><img style="width:100%" src="https://github.com/user-attachments/assets/ecc74caa-5473-4d09-8b81-933513a10b91"></td>
+      <td width="50%"><img style="width:100%" src="https://github.com/user-attachments/assets/9e10cdae-0cf3-4ac3-a73c-644db5cb321b"></td>
+    </tr>
+    <tr>
+      <td align="center">Stock</td>
+      <td align="center">Enhanced</td>
+    </tr>
+  </table>
+</div>
+
 ### Optiwand Resolution
 Removes the stock 256x256 resolution limit for the Optiwand, allowing its texture resolution to be increased up to 4096x4096.
 
