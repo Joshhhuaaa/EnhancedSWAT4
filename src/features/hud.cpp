@@ -1,15 +1,17 @@
 #include "stdafx.h"
 #include "common.hpp"
+#include "config.hpp"
 #include "feature.hpp"
 #include "script.hpp"
 
-static constexpr float fHUDScale     = 1.0f;    // 0 is the stock native size, 1 matches the 800x600 proportions
+static Config::Value bHUDScale("HUD", "Scale", true);
 static constexpr bool bHUDWidescreen = true;    // Prevents the HUD from stretching on widescreen
 
 namespace
 {
     constexpr float BaseHeight = 600.0f;
     constexpr float BaseAspect = 4.0f / 3.0f;
+    constexpr float NativeSnap = 1.25f;
 
     // UCanvas, read off the copy constructor
     constexpr ptrdiff_t CanvasFont     = 0x2c;
@@ -148,7 +150,7 @@ namespace
             it = fontScale.emplace(font, 1.0f).first;
         }
 
-        return it->second * At<int>(canvas, CanvasSizeY) / BaseHeight * fHUDScale;
+        return it->second * At<int>(canvas, CanvasSizeY) / BaseHeight;
     }
 
     // Measured at the stock scale and scaled afterwards. The original truncates each glyph's
@@ -251,7 +253,7 @@ namespace
     // Cursor scaling does not match the HUD scale at non-stock resolutions
     bool IsCursor(void* material)
     {
-        if (fHUDScale <= 0.0f || !material)
+        if (!bHUDScale || !material)
             return false;
 
         auto it = cursorMaterials.find(material);
@@ -298,7 +300,7 @@ namespace
         else if (IsCursor(material))
         {
             // MouseCursorOffset is (0,0) for the arrow, so x/y are exact. The resize cursor's (0.25,0.25)
-            auto f = At<int>(self, CanvasSizeY) / BaseHeight * fHUDScale / std::max(1, At<int>(self, CanvasSizeX) / 640);
+            auto f = At<int>(self, CanvasSizeY) / BaseHeight / std::max(1, At<int>(self, CanvasSizeX) / 640);
             xl *= f;
             yl *= f;
         }
@@ -375,10 +377,15 @@ namespace
 
         auto scale = LineHeight(font) > 0 ? static_cast<float>(baseHeight) / LineHeight(font) : 1.0f;
 
-        if (screenHeight > 0 && IsPixelFont(font))
+        // Glyphs resample unevenly at a fraction just above 1, so a page that is already close to
+        // its target draws at its native size instead
+        if (screenHeight > 0)
         {
-            auto s = scale * screenHeight / BaseHeight * fHUDScale;
-            scale *= std::max(1.0f, std::floor(s)) / s;
+            auto s = scale * screenHeight / BaseHeight;
+            if (IsPixelFont(font))
+                scale *= std::max(1.0f, std::floor(s)) / s;
+            else if (s < NativeSnap)
+                scale /= s;
         }
 
         fontScale[font] = scale;
@@ -415,7 +422,7 @@ namespace
             return;
 
         auto defaults = GetDefaultObject(cls);
-        tickScale     = At<int>(canvas, CanvasSizeY) / BaseHeight * fHUDScale;
+        tickScale     = At<int>(canvas, CanvasSizeY) / BaseHeight;
 
         At<int>(self, r.TickSize)      = static_cast<int>(std::lround(At<int>(defaults, r.TickSize)      * tickScale));
         At<int>(self, r.CenterDotSize) = static_cast<int>(std::lround(At<int>(defaults, r.CenterDotSize) * tickScale));
@@ -427,7 +434,7 @@ namespace
 
 FEATURE(GUI, HUDScale)
 {
-    if (fHUDScale <= 0.0f)
+    if (!bHUDScale)
         return;
 
     auto engine = GetModuleHandleW(L"Engine");
@@ -462,7 +469,7 @@ FEATURE(GUI, HUDScale)
     shGetFont           = safetyhook::create_inline(getFont, GetFont);
     shPreDraw           = safetyhook::create_inline(preDraw, PreDraw);
     HookDrawTile();
-    spdlog::info("HUDScale: Text and reticle sized from the screen height against 800x600, x{}", static_cast<float>(fHUDScale));
+    spdlog::info("HUDScale: Text and reticle sized from the screen height against 800x600");
 }
 
 namespace
