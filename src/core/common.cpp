@@ -15,7 +15,7 @@ void InitPaths()
     // one will not always hit in the other. SwatEd is the same exe in both, so fall back to
     // the content folder it was launched from.
     bExpansion = _stricmp(sExeName.c_str(), "Swat4X.exe") == 0 ||
-        (bEditor && _stricmp(sExePath.parent_path().filename().string().c_str(), "ContentExpansion") == 0);
+        (bEditor && _wcsicmp(sExePath.parent_path().filename().c_str(), L"ContentExpansion") == 0);
 
     if (GetModuleFileNameW(baseModule, path, MAX_PATH))
         sAsiPath = std::filesystem::path(path).parent_path();

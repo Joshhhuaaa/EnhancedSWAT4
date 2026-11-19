@@ -25,7 +25,9 @@
 #include <injector/hooking.hpp>
 #include <Hooking.Patterns.h>
 #include <safetyhook.hpp>
+#define SPDLOG_WCHAR_FILENAMES
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/std.h>
 
 #include "callbacks.h"
 

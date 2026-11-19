@@ -209,7 +209,7 @@ void Logging::Initialize()
 #endif
 
         std::vector<spdlog::sink_ptr> sinks{
-            std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile.string(), true)
+            std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile.wstring(), true)
         };
 #ifdef ENHANCED_DEBUG
         sinks.push_back(std::make_shared<spdlog::sinks::stdout_sink_mt>());
@@ -236,7 +236,7 @@ void Logging::LogSystemInfo()
     wchar_t module[MAX_PATH]{};
     GetModuleFileNameW(baseModule, module, MAX_PATH);
     spdlog::info("ASI: {} (base 0x{:08X})",
-        std::filesystem::path(module).lexically_proximate(sExePath).string(),
+        std::filesystem::path(module).lexically_proximate(sExePath),
         reinterpret_cast<uintptr_t>(baseModule));
 
     auto game = FileVersion(sExePath / sExeName);
@@ -244,7 +244,7 @@ void Logging::LogSystemInfo()
         game.empty() ? std::string() : " " + game,
         reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr)));
 
-    spdlog::info("Path: {}", sExePath.string());
+    spdlog::info("Path: {}", sExePath);
 
     BOOL wow64 = FALSE;
     IsWow64Process(GetCurrentProcess(), &wow64);

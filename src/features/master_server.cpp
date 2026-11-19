@@ -32,7 +32,7 @@ FEATURE(Engine, MasterServer)
 
     wchar_t module[MAX_PATH]{};
     GetModuleFileNameW(engine, module, MAX_PATH);
-    auto path = std::filesystem::path(module).string();
+    auto path = std::filesystem::path(module);
 
     for (auto& host : Hosts)
     {

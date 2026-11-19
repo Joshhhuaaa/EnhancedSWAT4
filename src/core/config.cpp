@@ -58,7 +58,7 @@ Config::Setting::Setting(const char* section, const char* key, Kind kind, float 
 void Config::Read()
 {
     auto path = sAsiPath / (APP_NAME ".ini");
-    spdlog::info("Config: {}", path.string());
+    spdlog::info("Config: {}", path);
 
     inipp::Ini<char> ini;
     {
